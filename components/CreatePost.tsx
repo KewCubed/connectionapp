@@ -128,6 +128,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
           {imagePreview && (
             <div className="relative mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imagePreview}
                 alt="Preview"

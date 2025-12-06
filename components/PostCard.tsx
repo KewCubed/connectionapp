@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface Post {
   id: string;
   content: string;
@@ -56,6 +58,8 @@ export default function PostCard({ post }: PostCardProps) {
 
           {post.imageUrl && (
             <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+              {/* Using img for user-uploaded images with unknown dimensions */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={post.imageUrl}
                 alt="Post image"
