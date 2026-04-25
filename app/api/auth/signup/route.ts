@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, findUserByUsername } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const signupSchema = z.object({
@@ -19,23 +19,29 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validatedData = signupSchema.parse(body);
 
-    // Check if username already exists
-    const existingUser = await findUserByUsername(validatedData.username);
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Username already taken' },
-        { status: 409 }
-      );
-    }
+    const email = `${validatedData.username}@connection-app.local`;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password: validatedData.password,
+      options: {
+        data: {
+          username: validatedData.username,
+        },
+      },
+    });
 
-    // Create new user
-    const user = await createUser(validatedData.username, validatedData.password);
+    if (error) {
+      const status = error.message.toLowerCase().includes('already')
+        ? 409
+        : 400;
+      return NextResponse.json({ error: error.message }, { status });
+    }
 
     return NextResponse.json(
       {
         user: {
-          id: user.id,
-          username: user.username,
+          id: data.user?.id ?? null,
+          username: validatedData.username,
         },
         message: 'Account created successfully',
       },

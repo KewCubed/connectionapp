@@ -83,6 +83,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           content: content.trim(),
           imageUrl,
           userId: user.id,
+          username: user.username,
         }),
       });
 

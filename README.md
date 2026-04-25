@@ -1,6 +1,6 @@
 # Connection App
 
-A simple social media app built with Next.js 14, TypeScript, Tailwind CSS, and Prisma ORM.
+A simple social media app built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 
 ## Features
 
@@ -15,15 +15,14 @@ A simple social media app built with Next.js 14, TypeScript, Tailwind CSS, and P
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Prisma ORM** (PostgreSQL)
-- **bcryptjs** (password hashing)
+- **Supabase** (Auth + Postgres)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ installed
-- PostgreSQL database (or connection string)
+- Supabase project (URL and anon key)
 
 ### Installation
 
@@ -34,25 +33,16 @@ npm install
 
 2. Set up environment variables:
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-Edit `.env` and add your PostgreSQL connection string:
+Edit `.env.local` and add your Supabase credentials:
 ```
-DATABASE_URL="postgresql://user:password@localhost:5432/connection_app?schema=public"
-```
-
-3. Generate Prisma Client:
-```bash
-npm run db:generate
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 ```
 
-4. Push the database schema:
-```bash
-npm run db:push
-```
-
-5. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
@@ -79,26 +69,18 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ├── contexts/
 │   └── AuthContext.tsx
 ├── lib/
-│   ├── auth.ts
-│   └── db.ts
-└── prisma/
-    └── schema.prisma
+│   ├── db.ts
+│   └── supabase.ts
 ```
 
 ## Database Schema
 
-### User
-- `id` (String, CUID)
-- `username` (String, unique)
-- `passwordHash` (String)
-- `createdAt` (DateTime)
-
-### Post
-- `id` (String, CUID)
-- `userId` (String, foreign key)
-- `content` (String, text)
-- `imageUrl` (String, optional)
-- `createdAt` (DateTime)
+### posts table
+- `id`
+- `user_id`
+- `username`
+- `caption`
+- `created_at`
 
 ## API Routes
 

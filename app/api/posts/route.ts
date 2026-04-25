@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const postSchema = z.object({
-  content: z.string().min(1).max(5000),
-  imageUrl: z.string().url().optional().nullable(),
+  caption: z.string().min(1).max(5000).optional(),
+  content: z.string().min(1).max(5000).optional(),
   userId: z.string(),
+  username: z.string().min(1).optional(),
 });
 
 // GET /api/posts - Get recent posts
@@ -15,21 +16,27 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const posts = await prisma.post.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id, user_id, username, caption, created_at')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    const posts =
+      data?.map((post) => ({
+        id: post.id,
+        content: post.caption,
+        imageUrl: null,
+        createdAt: post.created_at,
         user: {
-          select: {
-            id: true,
-            username: true,
-          },
+          id: post.user_id,
+          username: post.username,
         },
-      },
-    });
+      })) ?? [];
 
     return NextResponse.json({ posts }, { status: 200 });
   } catch (error) {
@@ -48,23 +55,39 @@ export async function POST(request: NextRequest) {
     
     // Validate request body
     const validatedData = postSchema.parse(body);
+    const caption = validatedData.caption ?? validatedData.content;
 
-    // Create post (requires database connection)
-    const post = await prisma.post.create({
-      data: {
-        content: validatedData.content,
-        imageUrl: validatedData.imageUrl || null,
-        userId: validatedData.userId,
+    if (!caption) {
+      return NextResponse.json(
+        { error: 'Caption is required' },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({
+        user_id: validatedData.userId,
+        username: validatedData.username ?? 'unknown',
+        caption,
+      })
+      .select('id, user_id, username, caption, created_at')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const post = {
+      id: data.id,
+      content: data.caption,
+      imageUrl: null,
+      createdAt: data.created_at,
+      user: {
+        id: data.user_id,
+        username: data.username,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
+    };
 
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {

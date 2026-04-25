@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUserByUsername, verifyPassword } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -15,22 +15,13 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validatedData = loginSchema.parse(body);
 
-    // Find user by username
-    const user = await findUserByUsername(validatedData.username);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid username or password' },
-        { status: 401 }
-      );
-    }
+    const email = `${validatedData.username}@connection-app.local`;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: validatedData.password,
+    });
 
-    // Verify password
-    const isPasswordValid = await verifyPassword(
-      validatedData.password,
-      user.passwordHash
-    );
-
-    if (!isPasswordValid) {
+    if (error || !data.user) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -41,8 +32,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         user: {
-          id: user.id,
-          username: user.username,
+          id: data.user.id,
+          username:
+            (data.user.user_metadata?.username as string | undefined) ??
+            validatedData.username,
         },
         message: 'Login successful',
       },
