@@ -1,11 +1,9 @@
 'use client';
 
-import Image from 'next/image';
-
 interface Post {
   id: string;
   content: string;
-  imageUrl: string | null;
+  image_url: string | null;
   createdAt: string;
   user: {
     id: string;
@@ -56,12 +54,12 @@ export default function PostCard({ post }: PostCardProps) {
             {post.content}
           </p>
 
-          {post.imageUrl && (
+          {post.image_url && (
             <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
               {/* Using img for user-uploaded images with unknown dimensions */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={post.imageUrl}
+                src={post.image_url}
                 alt="Post image"
                 className="w-full h-auto max-h-96 object-cover"
               />

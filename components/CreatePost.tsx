@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface CreatePostProps {
   onPostCreated?: () => void;
@@ -58,20 +59,28 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     setIsSubmitting(true);
 
     try {
-      // TODO: Upload image to storage service (e.g., Cloudinary, AWS S3)
-      // For now, we'll just prepare the structure
       let imageUrl: string | null = null;
 
       if (imageFile) {
-        // Placeholder for image upload
-        // In production, you would:
-        // 1. Upload to your storage service
-        // 2. Get the URL back
-        // 3. Use that URL in the post creation
-        // imageUrl = await uploadImage(imageFile);
-        setError('Image upload not yet configured. Please add image storage service.');
-        setIsSubmitting(false);
-        return;
+        const fileExt = imageFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}-${crypto.randomUUID()}${fileExt ? `.${fileExt}` : ''}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('posts')
+          .upload(filePath, imageFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw new Error(uploadError.message || 'Failed to upload image');
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('posts')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrlData.publicUrl;
       }
 
       const response = await fetch('/api/posts', {
@@ -81,7 +90,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         },
         body: JSON.stringify({
           content: content.trim(),
-          imageUrl,
+          image_url: imageUrl,
           userId: user.id,
           username: user.username,
         }),

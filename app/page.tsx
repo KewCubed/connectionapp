@@ -8,7 +8,7 @@ import CreatePost from '@/components/CreatePost';
 interface Post {
   id: string;
   content: string;
-  imageUrl: string | null;
+  image_url: string | null;
   createdAt: string;
   user: {
     id: string;

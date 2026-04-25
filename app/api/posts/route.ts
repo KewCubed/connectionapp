@@ -5,6 +5,7 @@ import { z } from 'zod';
 const postSchema = z.object({
   caption: z.string().min(1).max(5000).optional(),
   content: z.string().min(1).max(5000).optional(),
+  image_url: z.string().url().nullable().optional(),
   userId: z.string(),
   username: z.string().min(1).optional(),
 });
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('posts')
-      .select('id, user_id, username, caption, created_at')
+      .select('id, user_id, username, caption, image_url, created_at')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       data?.map((post) => ({
         id: post.id,
         content: post.caption,
-        imageUrl: null,
+        image_url: post.image_url,
         createdAt: post.created_at,
         user: {
           id: post.user_id,
@@ -70,8 +71,9 @@ export async function POST(request: NextRequest) {
         user_id: validatedData.userId,
         username: validatedData.username ?? 'unknown',
         caption,
+        image_url: validatedData.image_url ?? null,
       })
-      .select('id, user_id, username, caption, created_at')
+      .select('id, user_id, username, caption, image_url, created_at')
       .single();
 
     if (error) {
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     const post = {
       id: data.id,
       content: data.caption,
-      imageUrl: null,
+      image_url: data.image_url,
       createdAt: data.created_at,
       user: {
         id: data.user_id,
