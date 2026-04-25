@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Connection - Social Media App',
+  title: 'Createorate - Social Media App',
   description: 'A simple social media app built with Next.js',
 };
 

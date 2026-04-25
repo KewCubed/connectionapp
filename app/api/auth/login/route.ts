@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validatedData = loginSchema.parse(body);
 
-    const email = `${validatedData.username}@connection-app.local`;
+    const email = `${validatedData.username}@connectionapp.com`;
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: validatedData.password,

@@ -1,4 +1,4 @@
-# Connection App
+# Createorate App
 
 A simple social media app built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 
